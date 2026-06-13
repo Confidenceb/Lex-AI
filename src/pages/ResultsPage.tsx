@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import type { AnalysisResult, RiskLevel } from "../types";
 import {
   AlertTriangle, AlertCircle, Info, Shield, BookOpen,
-  Languages, Lightbulb, ArrowRight, RefreshCw
+  Languages, Lightbulb, ArrowRight, RefreshCw, Download
 } from "lucide-react";
 
 const severityConfig = {
@@ -60,7 +60,9 @@ function RedFlagItem({ flag }: { flag: AnalysisResult["redFlags"][number] }) {
 export default function ResultsPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const reportRef = useRef<HTMLDivElement>(null);
   const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     const stateResult = (location.state as { result?: AnalysisResult } | null)?.result;
@@ -80,6 +82,47 @@ export default function ResultsPage() {
     }
   }, [location.state, navigate]);
 
+  const handleDownloadPdf = async () => {
+    if (!reportRef.current) return;
+    setDownloading(true);
+
+    try {
+      const html2canvas = (await import("html2canvas")).default;
+      const jsPDF = (await import("jspdf")).default;
+
+      const canvas = await html2canvas(reportRef.current, {
+        backgroundColor: "#0f172a",
+        scale: 2,
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pageWidth - 20;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      let heightLeft = imgHeight;
+      let position = 10;
+
+      pdf.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight - 20;
+
+      while (heightLeft > 0) {
+        position = -(imgHeight - heightLeft) + 10;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight - 20;
+      }
+
+      pdf.save("LexAI-Contract-Analysis.pdf");
+    } catch {
+      // fallback
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   if (!result) return null;
 
   return (
@@ -89,62 +132,72 @@ export default function ResultsPage() {
         <p className="text-slate-400 mt-1">Here's what we found in your contract</p>
       </div>
 
-      {/* Risk Score */}
-      <RiskScoreCard score={result.riskScore} level={result.riskLevel} />
+      <div ref={reportRef} className="space-y-6">
+        {/* Risk Score */}
+        <RiskScoreCard score={result.riskScore} level={result.riskLevel} />
 
-      {/* Red Flags */}
-      {result.redFlags.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Shield className="text-red-400" size={20} />
-            <h2 className="text-lg font-semibold text-white">Red Flag Clauses</h2>
+        {/* Red Flags */}
+        {result.redFlags.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Shield className="text-red-400" size={20} />
+              <h2 className="text-lg font-semibold text-white">Red Flag Clauses</h2>
+            </div>
+            <div className="space-y-2">
+              {result.redFlags.map((flag, i) => (
+                <RedFlagItem key={i} flag={flag} />
+              ))}
+            </div>
           </div>
-          <div className="space-y-2">
-            {result.redFlags.map((flag, i) => (
-              <RedFlagItem key={i} flag={flag} />
-            ))}
-          </div>
-        </div>
-      )}
+        )}
 
-      {/* Plain English */}
-      <div className="glass rounded-xl p-6">
-        <div className="flex items-center gap-2 mb-3">
-          <BookOpen className="text-blue-400" size={20} />
-          <h2 className="text-lg font-semibold text-white">Plain English Summary</h2>
-        </div>
-        <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-line">{result.plainEnglishSummary}</p>
-      </div>
-
-      {/* Pidgin */}
-      <div className="glass rounded-xl p-6">
-        <div className="flex items-center gap-2 mb-3">
-          <Languages className="text-emerald-400" size={20} />
-          <h2 className="text-lg font-semibold text-white">Pidgin Summary</h2>
-        </div>
-        <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-line">{result.pidginSummary}</p>
-      </div>
-
-      {/* Recommendations */}
-      {result.recommendations.length > 0 && (
+        {/* Plain English */}
         <div className="glass rounded-xl p-6">
           <div className="flex items-center gap-2 mb-3">
-            <Lightbulb className="text-yellow-400" size={20} />
-            <h2 className="text-lg font-semibold text-white">Recommendations</h2>
+            <BookOpen className="text-blue-400" size={20} />
+            <h2 className="text-lg font-semibold text-white">Plain English Summary</h2>
           </div>
-          <ul className="space-y-2">
-            {result.recommendations.map((item, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm text-slate-300">
-                <ArrowRight className="text-primary-light shrink-0 mt-0.5" size={16} />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
+          <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-line">{result.plainEnglishSummary}</p>
         </div>
-      )}
+
+        {/* Pidgin */}
+        <div className="glass rounded-xl p-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Languages className="text-emerald-400" size={20} />
+            <h2 className="text-lg font-semibold text-white">Pidgin Summary</h2>
+          </div>
+          <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-line">{result.pidginSummary}</p>
+        </div>
+
+        {/* Recommendations */}
+        {result.recommendations.length > 0 && (
+          <div className="glass rounded-xl p-6">
+            <div className="flex items-center gap-2 mb-3">
+              <Lightbulb className="text-yellow-400" size={20} />
+              <h2 className="text-lg font-semibold text-white">Recommendations</h2>
+            </div>
+            <ul className="space-y-2">
+              {result.recommendations.map((item, i) => (
+                <li key={i} className="flex items-start gap-2 text-sm text-slate-300">
+                  <ArrowRight className="text-primary-light shrink-0 mt-0.5" size={16} />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
 
       {/* Actions */}
       <div className="flex flex-col sm:flex-row gap-3 justify-center pb-8">
+        <button
+          onClick={handleDownloadPdf}
+          disabled={downloading}
+          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg glass text-slate-200 font-medium text-sm hover:bg-glass-hover transition-colors cursor-pointer border-none disabled:opacity-50"
+        >
+          <Download size={16} />
+          {downloading ? "Generating PDF..." : "Download as PDF"}
+        </button>
         <button
           onClick={() => navigate("/analyze")}
           className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-primary text-white font-medium text-sm transition-all hover:bg-primary-dark cursor-pointer border-none"
