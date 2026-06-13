@@ -27,11 +27,11 @@ export default function LandingPage() {
             <Zap size={14} className="text-primary-light" />
             AI-Powered Contract Analysis for Nigerians
           </div>
-          <h1 className="text-5xl md:text-6xl font-bold text-white leading-tight mb-6">
-            Know What You're
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold text-white leading-tight mb-4 sm:mb-6">
+            Know What You&apos;re
             <span className="text-primary-light"> Signing</span>
           </h1>
-          <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-10">
+          <p className="text-sm sm:text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-8 sm:mb-10">
             Many Nigerians sign tenancy agreements, employment contracts, and business contracts
             without understanding the risks. LexAI helps you spot red flags before they cost you.
           </p>
@@ -67,12 +67,12 @@ export default function LandingPage() {
 
       {/* Problem */}
       <section className="border-t border-white/5">
-        <div className="max-w-4xl mx-auto px-4 py-20">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+        <div className="max-w-4xl mx-auto px-4 py-12 sm:py-20">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4">
               The Problem
             </h2>
-            <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+            <p className="text-sm sm:text-lg text-slate-400 max-w-2xl mx-auto">
               Millions of Nigerians sign contracts every day without understanding the fine print
             </p>
           </div>
@@ -96,12 +96,12 @@ export default function LandingPage() {
 
       {/* Features */}
       <section className="border-t border-white/5">
-        <div className="max-w-4xl mx-auto px-4 py-20">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+        <div className="max-w-4xl mx-auto px-4 py-12 sm:py-20">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4">
               What LexAI Does
             </h2>
-            <p className="text-slate-400 text-lg">
+            <p className="text-sm sm:text-lg text-slate-400">
               Four key insights for every contract you upload
             </p>
           </div>
@@ -126,12 +126,12 @@ export default function LandingPage() {
 
       {/* How It Works */}
       <section className="border-t border-white/5">
-        <div className="max-w-4xl mx-auto px-4 py-20">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+        <div className="max-w-4xl mx-auto px-4 py-12 sm:py-20">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4">
               How It Works
             </h2>
-            <p className="text-slate-400 text-lg">
+            <p className="text-sm sm:text-lg text-slate-400">
               Three simple steps to understand your contract
             </p>
           </div>
@@ -157,8 +157,8 @@ export default function LandingPage() {
 
       {/* CTA */}
       <section className="border-t border-white/5">
-        <div className="max-w-4xl mx-auto px-4 py-20 text-center">
-          <div className="glass rounded-2xl p-12 md:p-16">
+        <div className="max-w-4xl mx-auto px-4 py-12 sm:py-20 text-center">
+          <div className="glass rounded-2xl p-6 sm:p-12 md:p-16">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
               Ready to Understand Your Contract?
             </h2>

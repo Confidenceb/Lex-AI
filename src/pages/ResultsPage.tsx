@@ -1,9 +1,10 @@
 import { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import type { AnalysisResult, RiskLevel } from "../types";
+import type { AnalysisResult, RiskLevel, ClauseRating } from "../types";
 import {
   AlertTriangle, AlertCircle, Info, Shield, BookOpen,
-  Languages, Lightbulb, ArrowRight, RefreshCw, Download
+  Languages, Lightbulb, ArrowRight, RefreshCw, Download,
+  CheckCircle, MinusCircle, XCircle, Search
 } from "lucide-react";
 
 const severityConfig = {
@@ -18,40 +19,58 @@ const riskConfig: Record<RiskLevel, { color: string; label: string; ring: string
   low: { color: "text-emerald-400", label: "Low Risk", ring: "#34d399" },
 };
 
+const ratingConfig: Record<ClauseRating, { icon: typeof CheckCircle; color: string; border: string; bg: string; label: string }> = {
+  good: { icon: CheckCircle, color: "text-emerald-400", border: "border-emerald-500/20", bg: "bg-emerald-500/5", label: "Good" },
+  medium: { icon: MinusCircle, color: "text-yellow-400", border: "border-yellow-500/20", bg: "bg-yellow-500/5", label: "Medium" },
+  bad: { icon: XCircle, color: "text-red-400", border: "border-red-500/20", bg: "bg-red-500/5", label: "Bad" },
+};
+
 function RiskScoreCard({ score, level }: { score: number; level: RiskLevel }) {
   const cfg = riskConfig[level];
   return (
-    <div className="glass rounded-xl p-6 flex items-center gap-6">
-      <div className="relative w-24 h-24 shrink-0">
+    <div className="glass rounded-xl p-4 sm:p-6 flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+      <div className="relative w-20 h-20 sm:w-24 sm:h-24 shrink-0">
         <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
           <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="3" />
           <circle cx="18" cy="18" r="16" fill="none" stroke={cfg.ring} strokeWidth="3"
             strokeDasharray={`${score} 100`} strokeLinecap="round" />
         </svg>
-        <span className="absolute inset-0 flex items-center justify-center text-xl font-bold text-white">{score}</span>
+        <span className="absolute inset-0 flex items-center justify-center text-lg sm:text-xl font-bold text-white">{score}</span>
       </div>
-      <div>
-        <h2 className={`text-2xl font-bold ${cfg.color}`}>{cfg.label}</h2>
-        <p className="text-sm text-slate-400 mt-1">Overall risk assessment based on AI analysis</p>
+      <div className="text-center sm:text-left">
+        <h2 className={`text-xl sm:text-2xl font-bold ${cfg.color}`}>{cfg.label}</h2>
+        <p className="text-xs sm:text-sm text-slate-400 mt-1">Overall risk assessment based on AI analysis</p>
       </div>
     </div>
   );
 }
 
-function RedFlagItem({ flag }: { flag: AnalysisResult["redFlags"][number] }) {
-  const cfg = severityConfig[flag.severity];
+function ClauseItem({ clause }: { clause: NonNullable<AnalysisResult["clauseAssessments"]>[number] }) {
+  const cfg = ratingConfig[clause.rating];
   const Icon = cfg.icon;
   return (
-    <div className={`glass rounded-lg p-4 ${cfg.border}`}>
-      <div className="flex items-start gap-3">
-        <Icon className={`${cfg.color} shrink-0 mt-0.5`} size={18} />
+    <div className={`glass rounded-lg p-3 sm:p-4 ${cfg.border}`}>
+      <div className="flex items-start gap-2 sm:gap-3">
+        <Icon className={`${cfg.color} shrink-0 mt-0.5`} size={clause.rating === "bad" ? 20 : 18} />
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-white mb-1">{flag.clause}</p>
-          <p className="text-sm text-slate-300">{flag.issue}</p>
+          <div className="flex items-start sm:items-center gap-2 flex-col sm:flex-row sm:gap-3 mb-1">
+            <p className="text-sm font-medium text-white">{clause.clause}</p>
+            <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${cfg.color} ${cfg.bg}`}>
+              <Icon size={clause.rating === "bad" ? 12 : 10} />
+              {cfg.label}
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-300 mb-1">{clause.explanation}</p>
+          {clause.detail && (
+            <p className="text-xs text-slate-400">{clause.detail}</p>
+          )}
+          {clause.found && (
+            <span className="inline-flex items-center gap-1 text-xs text-primary-light mt-1.5">
+              <Search size={10} />
+              Detected in contract
+            </span>
+          )}
         </div>
-        <span className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${cfg.color} ${cfg.bg}`}>
-          {flag.severity}
-        </span>
       </div>
     </div>
   );
@@ -63,6 +82,8 @@ export default function ResultsPage() {
   const reportRef = useRef<HTMLDivElement>(null);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [downloading, setDownloading] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<"all" | "good" | "medium" | "bad">("all");
 
   useEffect(() => {
     const stateResult = (location.state as { result?: AnalysisResult } | null)?.result;
@@ -85,6 +106,7 @@ export default function ResultsPage() {
   const handleDownloadPdf = async () => {
     if (!reportRef.current) return;
     setDownloading(true);
+    setPdfError(null);
 
     try {
       const html2canvas = (await import("html2canvas")).default;
@@ -93,6 +115,8 @@ export default function ResultsPage() {
       const canvas = await html2canvas(reportRef.current, {
         backgroundColor: "#0f172a",
         scale: 2,
+        useCORS: true,
+        logging: false,
       });
 
       const imgData = canvas.toDataURL("image/png");
@@ -109,15 +133,16 @@ export default function ResultsPage() {
       heightLeft -= pageHeight - 20;
 
       while (heightLeft > 0) {
-        position = -(imgHeight - heightLeft) + 10;
+        position = heightLeft >= 0 ? -(imgHeight - heightLeft) + 10 : 10;
         pdf.addPage();
         pdf.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
         heightLeft -= pageHeight - 20;
       }
 
       pdf.save("LexAI-Contract-Analysis.pdf");
-    } catch {
-      // fallback
+    } catch (err) {
+      console.error("PDF generation failed:", err);
+      setPdfError("Could not generate PDF. Try copying the results manually.");
     } finally {
       setDownloading(false);
     }
@@ -125,34 +150,86 @@ export default function ResultsPage() {
 
   if (!result) return null;
 
+  const assessments = result.clauseAssessments ?? [];
+  const filteredAssessments = filter === "all"
+    ? assessments
+    : assessments.filter((c) => c.rating === filter);
+
+  const filterTabs: { key: typeof filter; label: string }[] = [
+    { key: "all", label: "All Clauses" },
+    { key: "good", label: "Good" },
+    { key: "medium", label: "Medium" },
+    { key: "bad", label: "Bad" },
+  ];
+
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
-      <div className="text-center mb-2">
-        <h1 className="text-3xl font-bold text-white">Analysis Results</h1>
-        <p className="text-slate-400 mt-1">Here's what we found in your contract</p>
+    <div className="max-w-3xl mx-auto px-4 py-6 sm:py-8 space-y-5 sm:space-y-6">
+      <div className="text-center mb-2 sm:mb-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-white">Analysis Results</h1>
+        <p className="text-sm sm:text-base text-slate-400 mt-1">Here&apos;s what we found in your contract</p>
       </div>
 
-      <div ref={reportRef} className="space-y-6">
+      <div ref={reportRef} className="space-y-5 sm:space-y-6">
         {/* Risk Score */}
         <RiskScoreCard score={result.riskScore} level={result.riskLevel} />
 
-        {/* Red Flags */}
-        {result.redFlags.length > 0 && (
+        {/* All Clause Assessments */}
+        {assessments.length > 0 && (
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <Shield className="text-red-400" size={20} />
-              <h2 className="text-lg font-semibold text-white">Red Flag Clauses</h2>
+              <Shield className="text-primary-light" size={20} />
+              <h2 className="text-lg font-semibold text-white">Clause-by-Clause Analysis</h2>
             </div>
+
+            {/* Filter tabs */}
+            <div className="flex gap-1 p-1 bg-white/5 rounded-lg w-fit overflow-x-auto">
+              {filterTabs.map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setFilter(tab.key)}
+                  className={`px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap cursor-pointer border-none ${
+                    filter === tab.key
+                      ? "bg-primary text-white"
+                      : "text-slate-400 hover:text-white bg-transparent"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
             <div className="space-y-2">
-              {result.redFlags.map((flag, i) => (
-                <RedFlagItem key={i} flag={flag} />
+              {filteredAssessments.map((clause, i) => (
+                <ClauseItem key={i} clause={clause} />
               ))}
             </div>
           </div>
         )}
 
+        {/* Red Flags Summary (keep as a quick summary) */}
+        {result.redFlags.filter(f => f.severity !== "low").length > 0 && (
+          <div className="glass rounded-xl p-4 sm:p-6 border border-red-500/20">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertTriangle className="text-red-400" size={20} />
+              <h2 className="text-lg font-semibold text-white">Red Flags Summary</h2>
+            </div>
+            <div className="space-y-2">
+              {result.redFlags.filter(f => f.severity !== "low").map((flag, i) => {
+                const cfg = severityConfig[flag.severity];
+                const Icon = cfg.icon;
+                return (
+                  <div key={i} className="flex items-start gap-2 text-sm">
+                    <Icon className={`${cfg.color} shrink-0 mt-0.5`} size={14} />
+                    <span className="text-slate-300">{flag.clause}: <span className="text-slate-400">{flag.issue}</span></span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Plain English */}
-        <div className="glass rounded-xl p-6">
+        <div className="glass rounded-xl p-4 sm:p-6">
           <div className="flex items-center gap-2 mb-3">
             <BookOpen className="text-blue-400" size={20} />
             <h2 className="text-lg font-semibold text-white">Plain English Summary</h2>
@@ -161,7 +238,7 @@ export default function ResultsPage() {
         </div>
 
         {/* Pidgin */}
-        <div className="glass rounded-xl p-6">
+        <div className="glass rounded-xl p-4 sm:p-6">
           <div className="flex items-center gap-2 mb-3">
             <Languages className="text-emerald-400" size={20} />
             <h2 className="text-lg font-semibold text-white">Pidgin Summary</h2>
@@ -171,7 +248,7 @@ export default function ResultsPage() {
 
         {/* Recommendations */}
         {result.recommendations.length > 0 && (
-          <div className="glass rounded-xl p-6">
+          <div className="glass rounded-xl p-4 sm:p-6">
             <div className="flex items-center gap-2 mb-3">
               <Lightbulb className="text-yellow-400" size={20} />
               <h2 className="text-lg font-semibold text-white">Recommendations</h2>
@@ -187,6 +264,13 @@ export default function ResultsPage() {
           </div>
         )}
       </div>
+
+      {/* PDF Error */}
+      {pdfError && (
+        <div className="glass rounded-lg p-3 border border-red-500/30 text-center">
+          <p className="text-xs sm:text-sm text-red-300">{pdfError}</p>
+        </div>
+      )}
 
       {/* Actions */}
       <div className="flex flex-col sm:flex-row gap-3 justify-center pb-8">

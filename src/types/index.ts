@@ -1,4 +1,5 @@
 export type RiskLevel = "high" | "medium" | "low";
+export type ClauseRating = "good" | "medium" | "bad";
 
 export interface RedFlag {
   clause: string;
@@ -6,10 +7,19 @@ export interface RedFlag {
   severity: RiskLevel;
 }
 
+export interface ClauseAssessment {
+  clause: string;
+  explanation: string;
+  rating: ClauseRating;
+  found: boolean;
+  detail?: string;
+}
+
 export interface AnalysisResult {
   riskScore: number;
   riskLevel: RiskLevel;
   redFlags: RedFlag[];
+  clauseAssessments: ClauseAssessment[];
   plainEnglishSummary: string;
   pidginSummary: string;
   recommendations: string[];

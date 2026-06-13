@@ -75,11 +75,11 @@ export default function AnalysisPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
-      <div className="text-center mb-10">
-        <h1 className="text-4xl font-bold text-white mb-3">
+      <div className="text-center mb-8 sm:mb-10">
+        <h1 className="text-2xl sm:text-4xl font-bold text-white mb-2 sm:mb-3">
           Analyze Your Contract
         </h1>
-        <p className="text-slate-400 text-lg">
+        <p className="text-sm sm:text-lg text-slate-400">
           Paste your contract text or upload a file to get started
         </p>
       </div>
@@ -117,7 +117,7 @@ export default function AnalysisPage() {
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Paste your contract text here..."
-            className="w-full h-72 p-4 rounded-lg bg-slate-800/50 border border-white/10 text-slate-200 text-sm resize-y focus:outline-none focus:border-primary-light transition-colors placeholder:text-slate-500"
+            className="w-full h-48 sm:h-72 p-3 sm:p-4 rounded-lg bg-slate-800/50 border border-white/10 text-slate-200 text-sm resize-y focus:outline-none focus:border-primary-light transition-colors placeholder:text-slate-500"
           />
         )}
 
@@ -127,10 +127,10 @@ export default function AnalysisPage() {
             {!file ? (
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-white/10 rounded-lg p-10 text-center hover:border-white/20 transition-colors cursor-pointer"
+                className="border-2 border-dashed border-white/10 rounded-lg p-6 sm:p-10 text-center hover:border-white/20 transition-colors cursor-pointer"
               >
-                <Upload className="mx-auto mb-3 text-slate-400" size={36} />
-                <p className="text-sm text-slate-400 mb-1">
+                <Upload className="mx-auto mb-3 text-slate-400" size={28} />
+                <p className="text-xs sm:text-sm text-slate-400 mb-1">
                   Drop a file here or click to browse
                 </p>
                 <p className="text-xs text-slate-500">
