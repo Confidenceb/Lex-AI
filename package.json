@@ -1,0 +1,33 @@
+{
+  "name": "lex-ai",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:api": "tsx server/index.ts",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vercel/node": "^5.8.17",
+    "tsx": "^4.22.4",
+    "typescript": "~6.0.2",
+    "vite": "^8.0.12"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@tailwindcss/vite": "^4.3.1",
+    "@vitejs/plugin-react": "^6.0.2",
+    "express": "^5.2.1",
+    "lucide-react": "^1.18.0",
+    "mammoth": "^1.12.0",
+    "pdfjs-dist": "^6.0.227",
+    "react-router-dom": "^7.17.0",
+    "tailwindcss": "^4.3.1",
+    "tesseract.js": "^7.0.0"
+  }
+}
