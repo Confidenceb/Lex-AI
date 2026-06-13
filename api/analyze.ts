@@ -9,6 +9,7 @@ Analyze the provided contract text and return a JSON object with:
 - riskScore: number 0-100 (how risky this contract is for the signer)
 - riskLevel: "low" | "medium" | "high"
 - redFlags: array of objects with { clause: string, issue: string, severity: "low" | "medium" | "high" }
+- clauseAssessments: array of objects with { clause: string, explanation: string, rating: "good" | "medium" | "bad", found: boolean, detail: string }. List ALL common contract clauses (payment terms, notice period, termination, confidentiality, rent review, forfeiture, non-compete, indemnity, waiver of rights, dispute resolution, governing law, assignment, force majeure, liability cap, renewal, non-solicitation, data protection, binding arbitration, garden leave, sole discretion, working hours, etc.) and assess each. Set "found" to true if the clause was detected in the text.
 - plainEnglishSummary: a clear plain-English explanation of the contract risks
 - pidginSummary: explanation in Nigerian Pidgin English
 - recommendations: array of actionable recommendation strings
@@ -49,6 +50,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       riskScore: parsed.riskScore ?? parsed.risk_score ?? 50,
       riskLevel: parsed.riskLevel ?? parsed.risk_level ?? "medium",
       redFlags: parsed.redFlags ?? parsed.red_flags ?? [],
+      clauseAssessments: parsed.clauseAssessments ?? parsed.clause_assessments ?? [],
       plainEnglishSummary: parsed.plainEnglishSummary ?? parsed.plain_english ?? "",
       pidginSummary: parsed.pidginSummary ?? parsed.pidgin ?? "",
       recommendations: parsed.recommendations ?? [],

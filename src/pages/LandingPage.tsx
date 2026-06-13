@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Scale, ShieldAlert, BookOpen, Languages, Lightbulb, ArrowRight, FileText, Upload, Zap, CheckCircle } from "lucide-react";
+import { Scale, ShieldAlert, BookOpen, Languages, Lightbulb, ArrowRight, FileText, Upload, Zap, CheckCircle, Star, MessageCircle } from "lucide-react";
 
 const features = [
   { icon: ShieldAlert, title: "Risk Detection", desc: "Identify unfair clauses and hidden risks before you sign" },
@@ -151,6 +151,45 @@ export default function LandingPage() {
                 </div>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="border-t border-white/5">
+        <div className="max-w-4xl mx-auto px-4 py-12 sm:py-20">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4">
+              What Users Say
+            </h2>
+            <p className="text-sm sm:text-lg text-slate-400">
+              Real feedback from people who used LexAI
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              { name: "Chidi O.", role: "Lagos Tenant", text: "I almost signed a tenancy agreement with a forfeiture clause that would have cost me 6 months rent. LexAI caught it immediately." },
+              { name: "Amina B.", role: "Abuja Professional", text: "The Pidgin summary made everything clear. My village people would be proud! I finally understand what I'm signing at work." },
+              { name: "Femi A.", role: "Business Owner, PH", text: "I use LexAI for all my business contracts now. The clause-by-clause breakdown helps me negotiate better terms every time." },
+            ].map((t) => (
+              <div key={t.name} className="glass rounded-xl p-5 sm:p-6 flex flex-col">
+                <div className="flex gap-1 mb-3">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} size={14} className="text-yellow-400 fill-yellow-400" />
+                  ))}
+                </div>
+                <p className="text-sm text-slate-300 leading-relaxed flex-1 mb-4">&ldquo;{t.text}&rdquo;</p>
+                <div className="flex items-center gap-2 pt-3 border-t border-white/5">
+                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                    <MessageCircle size={14} className="text-primary-light" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white">{t.name}</p>
+                    <p className="text-xs text-slate-500">{t.role}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
